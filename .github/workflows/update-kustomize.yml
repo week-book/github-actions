@@ -46,6 +46,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          git checkout dev
           git add .
           git commit -m "Update ${{ inputs.service_name }} image to ${{ inputs.image_tag }}"
           git push
