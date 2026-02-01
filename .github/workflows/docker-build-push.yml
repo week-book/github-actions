@@ -1,0 +1,50 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+      push_latest:
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      image_tag:
+        description: "SHA tag of the image"
+        value: sha-${{ github.sha }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        run: |
+          IMAGE=${{ inputs.image }}
+          TAG_SHA=sha-${{ github.sha }}
+
+          docker build \
+            -t $IMAGE:$TAG_SHA \
+            -t $IMAGE:latest \
+            .
+
+          docker push $IMAGE:$TAG_SHA
+
+          if [ "${{ inputs.push_latest }}" = "true" ]; then
+            docker push $IMAGE:latest
+          fi
